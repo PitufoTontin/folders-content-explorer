@@ -6,7 +6,9 @@ namespace FoldersContentExplorer
     {
         static void Main(string[] args)
         {
-            Console.WriteLine("Hello World!");
+            var explorer = new Explorer(new string[] { @"E:\" });
+
+            explorer.Explore();
         }
     }
 }
