@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace FoldersContentExplorer
@@ -98,7 +97,8 @@ namespace FoldersContentExplorer
                 return;
             }
 
-            actions.Add(() => ExploreContent(directoryInfo));
+            var outputFileName = GetOutputFileName();
+            actions.Add(() => ExploreContent(directoryInfo, outputFileName));
 
             //TODO PLinq
             foreach (DirectoryInfo subDirectory in subDirectories)
@@ -107,11 +107,9 @@ namespace FoldersContentExplorer
             }
         }
 
-        private void ExploreContent(DirectoryInfo directoryInfo)
+        private void ExploreContent(DirectoryInfo directoryInfo, string outputFileName)
         {
             var extensions = new List<string>();
-            var outputFileName = Guid.NewGuid().ToString();
-            outputFileNames.Add(outputFileName);
 
             using var outputStream = new StreamWriter($@"{outputDirectory.FullName}\{outputFileName}.tmp");
 
@@ -151,18 +149,34 @@ namespace FoldersContentExplorer
             outputStream.Close();
         }
 
+        public string GetOutputFileName()
+        {
+            var outputFileName = string.Empty;
+
+            while(string.IsNullOrWhiteSpace(outputFileName) || outputFileNames.IndexOf(outputFileName) >= 0)
+            {
+                outputFileName = Guid.NewGuid().ToString();
+            }
+
+            outputFileNames.Add(outputFileName);
+
+            return outputFileName;
+        }
+
         private void UnifyOutputFiles()
         {
             using var finalOutputStream = new StreamWriter($@"{outputDirectory.FullName}\explorer.json");
             finalOutputStream.WriteLine("[");
 
-            foreach (string outputFileName in this.outputFileNames)
+            foreach (string outputFileName in outputFileNames)
             {
                 using var fileReadStream = new StreamReader($@"{outputDirectory.FullName}\{outputFileName}.tmp");
 
                 finalOutputStream.WriteLine(fileReadStream.ReadToEnd());
 
                 fileReadStream.Close();
+
+                File.Delete($@"{outputDirectory.FullName}\{outputFileName}.tmp");
             }
 
             finalOutputStream.WriteLine("]");
