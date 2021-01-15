@@ -4,7 +4,7 @@
     {
         static void Main(string[] args)
         {
-            var explorer = new Explorer(new string[] { @"E:\" });
+            var explorer = new Explorer(args);
 
             explorer.Explore();
         }
